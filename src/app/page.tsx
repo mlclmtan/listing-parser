@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import cheerio from 'cheerio';
+import { Table } from 'antd';
 
 interface IPrice {
   amount: number;
@@ -10,7 +11,7 @@ interface IPrice {
 
 const Home = () => {
   const [htmlInput, setHtmlInput] = useState('');
-  const [listings, setListings] = useState([]);
+  const [listings, setListings] = useState([] as any[]);
 
   const handleHtmlInputChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
     setHtmlInput(e.target.value);
@@ -66,7 +67,7 @@ const Home = () => {
   const parseHtml = () => {
     const $ = cheerio.load(htmlInput);
 
-    const listings: ((prevState: never[]) => never[]) | { sellerName: string; listingTitle: string; price: IPrice; timeAgo: string; imageUrl: string | undefined; }[] = [];
+    const listings: { sellerName: string; listingTitle: string; price: IPrice; timeAgo: string; imageUrl: string | undefined; id: number; }[] = [];
 
     $('.D_vj.D_pt').each((index, element) => {
       const sellerName = $(element).find('p[data-testid="listing-card-text-seller-name"]').text().trim();
@@ -81,12 +82,13 @@ const Home = () => {
         price,
         timeAgo,
         imageUrl,
+        id: index
       });
     });
 
     console.log({ listings })
 
-    setListings(listings as never[]);
+    setListings(listings);
   };
 
   function calculateLowestPercentiileMedianPrice(listings: any[], percentile = 30) {
@@ -115,6 +117,29 @@ const Home = () => {
     }
   }
 
+  const columns = [
+    {
+      title: 'Seller',
+      dataIndex: 'sellerName',
+      key: 'sellerName',
+    },
+    {
+      title: 'Title',
+      dataIndex: 'listingTitle',
+      key: 'listingTitle',
+    },
+    {
+      title: 'Price',
+      dataIndex: ["price", "amount"],
+      key: 'price',
+    },
+    {
+      title: 'Posted',
+      dataIndex: 'timeAgo',
+      key: 'timeAgo',
+    },
+  ];
+
   return (
     <div>
       <h1>Price Parser</h1>
@@ -129,26 +154,7 @@ const Home = () => {
       <button onClick={parseHtml}>Parse HTML</button>
       <hr />
       <h2>Listings (Median Price: {calculateLowestPercentiileMedianPrice(listings)})</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Seller</th>
-            <th>Title</th>
-            <th>Price</th>
-            <th>Posted</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(listings as { sellerName: string; listingTitle: string; price: IPrice; timeAgo: string; imageUrl: string | undefined; }[]).map((listing, index) => (
-            <tr key={index}>
-              <td>{listing.sellerName}</td>
-              <td>{listing.listingTitle}</td>
-              <td>{listing.price.formatted}</td>
-              <td>{listing.timeAgo}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table dataSource={listings} columns={columns} rowKey="id" />
     </div>
   );
 };
