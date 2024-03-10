@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import cheerio from 'cheerio';
 import { Table } from 'antd';
 
@@ -16,6 +16,7 @@ const Home = () => {
   const handleHtmlInputChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
     setHtmlInput(e.target.value);
   };
+
 
   const getCurrency = (abbr: string) => {
     const enumerable: { [key: string]: { locale: string; code: string } } = {
@@ -45,27 +46,29 @@ const Home = () => {
   }
 
 
-  const parseCurrency = (item: string): IPrice => {
-    const parsedPrice = item.match(/^([^\d]*)([^\D]*\d.*)$/);
-    const options = {
-      style: 'currency',
-      currency: getCurrency(parsedPrice ? parsedPrice[1] : '').code
-    };
-    const numeralFormat = new Intl.NumberFormat(
-      getCurrency(parsedPrice ? parsedPrice[1] : '').locale,
-      options
-    );
 
-    return {
-      amount: parsedPrice ? sanitizeCurrency(parsedPrice[2]) : 0,
-      formatted: parsedPrice ? numeralFormat.format(sanitizeCurrency(parsedPrice[2])) : ''
-    }
-  };
 
-  const parseHtml = () => {
+  const parseHtml = useCallback(() => {
     const $ = cheerio.load(htmlInput);
 
     const listings: { sellerName: string; listingTitle: string; price: IPrice; timeAgo: string; imageUrl: string | undefined; id: number; }[] = [];
+
+    const parseCurrency = (item: string): IPrice => {
+      const parsedPrice = item.match(/^([^\d]*)([^\D]*\d.*)$/);
+      const options = {
+        style: 'currency',
+        currency: getCurrency(parsedPrice ? parsedPrice[1] : '').code
+      };
+      const numeralFormat = new Intl.NumberFormat(
+        getCurrency(parsedPrice ? parsedPrice[1] : '').locale,
+        options
+      );
+
+      return {
+        amount: parsedPrice ? sanitizeCurrency(parsedPrice[2]) : 0,
+        formatted: parsedPrice ? numeralFormat.format(sanitizeCurrency(parsedPrice[2])) : ''
+      }
+    };
 
     $('.D_vj.D_pt').each((index, element) => {
       const sellerName = $(element).find('p[data-testid="listing-card-text-seller-name"]').text().trim();
@@ -85,7 +88,7 @@ const Home = () => {
     });
 
     setListings(listings);
-  };
+  }, [htmlInput]);
 
   function calculateLowestPercentiileMedianPrice(listings: any[], percentile = 30) {
     // Extract prices from the listings
@@ -113,10 +116,6 @@ const Home = () => {
     }
   }
 
-  useEffect(() => {
-    parseHtml();
-  }, [htmlInput, parseHtml]);
-
   const columns = [
     {
       title: 'Seller',
@@ -127,11 +126,36 @@ const Home = () => {
       title: 'Title',
       dataIndex: 'listingTitle',
       key: 'listingTitle',
+      filters: [
+        {
+          text: '64GB',
+          value: '64',
+        },
+        {
+          text: '128GB',
+          value: '128',
+        },
+        {
+          text: '256GB',
+          value: '256',
+        },
+        {
+          text: '512GB',
+          value: '512',
+        },
+        {
+          text: '1TB',
+          value: '1TB',
+        },
+      ],
+      onFilter: (value: any, record: any) => record.listingTitle.indexOf(value) !== -1
     },
     {
       title: 'Price',
       dataIndex: ["price", "amount"],
       key: 'price',
+      // sorter: (a: { price: { amount: number; }; }, b: { price: { amount: number; }; }) => a.price.amount - b.price.amount,
+      sorter: (a: { price: { amount: number; }; }, b: { price: { amount: number; }; }) => a.price.amount - b.price.amount,
     },
     {
       title: 'Posted',
@@ -139,6 +163,10 @@ const Home = () => {
       key: 'timeAgo',
     },
   ];
+
+  useEffect(() => {
+    if (htmlInput) parseHtml();
+  }, [htmlInput, parseHtml]);
 
   return (
     <div>
