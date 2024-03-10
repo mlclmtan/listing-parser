@@ -46,13 +46,11 @@ const Home = () => {
 
 
   const parseCurrency = (item: string): IPrice => {
-    console.log({ item })
     const parsedPrice = item.match(/^([^\d]*)([^\D]*\d.*)$/);
     const options = {
       style: 'currency',
       currency: getCurrency(parsedPrice ? parsedPrice[1] : '').code
     };
-    console.log({ parsedPrice })
     const numeralFormat = new Intl.NumberFormat(
       getCurrency(parsedPrice ? parsedPrice[1] : '').locale,
       options
@@ -85,8 +83,6 @@ const Home = () => {
         id: index
       });
     });
-
-    console.log({ listings })
 
     setListings(listings);
   };
