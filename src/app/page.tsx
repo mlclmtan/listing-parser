@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import cheerio from 'cheerio';
 import { Table } from 'antd';
 
@@ -112,6 +112,10 @@ const Home = () => {
       return lowerPercentilePrices[lowerPercentileMiddle];
     }
   }
+
+  useEffect(() => {
+    parseHtml();
+  }, [htmlInput, parseHtml]);
 
   const columns = [
     {
