@@ -176,7 +176,7 @@ const Home = () => {
         padding: '1rem 5rem'
       }
     }>
-      <Title>Price Parser</Title>
+      <Title>Listing parser</Title>
       <TextArea
         rows={10}
         cols={50}
