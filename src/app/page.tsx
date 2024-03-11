@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import cheerio from 'cheerio';
-import { Table } from 'antd';
+import { Table, Button, Input, Typography } from 'antd';
 
 interface IPrice {
   amount: number;
   formatted: string;
 }
+
+const { TextArea } = Input;
+const { Title } = Typography;
 
 const Home = () => {
   const [htmlInput, setHtmlInput] = useState('');
@@ -154,7 +157,6 @@ const Home = () => {
       title: 'Price',
       dataIndex: ["price", "amount"],
       key: 'price',
-      // sorter: (a: { price: { amount: number; }; }, b: { price: { amount: number; }; }) => a.price.amount - b.price.amount,
       sorter: (a: { price: { amount: number; }; }, b: { price: { amount: number; }; }) => a.price.amount - b.price.amount,
     },
     {
@@ -169,19 +171,23 @@ const Home = () => {
   }, [htmlInput, parseHtml]);
 
   return (
-    <div>
-      <h1>Price Parser</h1>
-      <textarea
+    <div style={
+      {
+        padding: '1rem 5rem'
+      }
+    }>
+      <Title>Price Parser</Title>
+      <TextArea
         rows={10}
         cols={50}
         placeholder="Paste HTML here"
         value={htmlInput}
         onChange={handleHtmlInputChange}
-      ></textarea>
+      ></TextArea>
       <br />
-      <button onClick={parseHtml}>Parse HTML</button>
-      <hr />
-      <h2>Listings (Median Price: {calculateLowestPercentiileMedianPrice(listings)})</h2>
+      <Button onClick={parseHtml}>Parse HTML</Button>
+      <br />
+      <Title level={2}>Listings (Median Price: {calculateLowestPercentiileMedianPrice(listings)})</Title>
       <Table dataSource={listings} columns={columns} rowKey="id" />
     </div>
   );
